@@ -1,5 +1,10 @@
 from .lexicon import (
-    REGIONS,
     MENU_COMMANDS,
-    LEXICON_RU
+    LEXICON,
+    CURRENCIES,
+    LANGUAGES,
+)
+
+from .regions import (
+    REGIONS,
 )
