@@ -6,8 +6,6 @@ from urllib.parse import quote
 import aiohttp
 from bs4 import BeautifulSoup
 
-from lexicon import REGIONS
-
 logger = logging.getLogger(__name__)
 
 headers = {
@@ -53,13 +51,10 @@ def get_number(price, currency):
     return float(number)
 
 
-async def convert_to_byn(session, amount, currency):
-    url = f"https://api.exchangerate-api.com/v4/latest/{currency}"
-
+async def convert_currency(session, amount, from_currency, to_currency):
+    url = f"https://api.exchangerate-api.com/v4/latest/{from_currency}"
     data = await fetch_json(session, url)
-
-    rate = data["rates"]["BYN"]
-
+    rate = data["rates"][to_currency]
     return round(amount * rate, 2)
 
 
@@ -114,7 +109,13 @@ async def get_game_info(session, url):
     }
 
 
-async def get_region_price(session, country, data, game_name):
+async def get_region_price(
+    session,
+    country,
+    data,
+    game_name,
+    user_currency
+):
     region = data["region"]
     currency = data["currency"]
 
@@ -145,28 +146,32 @@ async def get_region_price(session, country, data, game_name):
     )
 
     if amount is not None:
-        info["byn"] = await convert_to_byn(
+        info["converted_price"] = await convert_currency(
             session,
             amount,
-            currency
+            currency,
+            user_currency
         )
     else:
-        info["byn"] = None
+        info["converted_price"] = None
 
     return country, info
 
-
-async def get_prices(game_name):
+async def get_prices(game_name, regions, user_currency):
     async with aiohttp.ClientSession() as session:
 
         tasks = [
             get_region_price(
                 session,
-                country,
-                data,
-                game_name
+                region.country,
+                {
+                    "region": region.ps_locale,
+                    "currency": region.currency
+                },
+                game_name,
+                user_currency
             )
-            for country, data in REGIONS.items()
+            for region in regions
         ]
 
         results = await asyncio.gather(*tasks)
@@ -174,34 +179,33 @@ async def get_prices(game_name):
     return dict(results)
 
 
-def format_prices(prices):
-    game_name = next(iter(prices.values()))["name"]
+def format_prices(prices, user_currency):
+    game_name = next(
+        (
+            data["name"]
+            for data in prices.values()
+            if "name" in data
+        ),
+        "Игра"
+    )
 
     text = f"🎮 <b>{game_name}</b>\n"
     text += "🌍 <b>Цены по регионам:</b>\n\n"
 
-    sorted_prices = sorted(
-        prices.items(),
-        key=lambda x: x[1].get("byn") or float("inf")
-    )
+    for country, data in prices.items():
 
-    for country, data in sorted_prices:
+        if "error" in data:
+            text += (
+                f"{country} — {data['error']}\n\n"
+            )
+            continue
+
         text += (
-            f"{country} | <a href='{data['url']}'>{data['name']}</a>\n"
+            f"{country} | "
+            f"<a href='{data['url']}'>{data['name']}</a>\n"
             f"    Цена с PS+: {data['price']}\n"
-            f"    Цена: {data['original_price']} ≈ <b>{data['byn']} BYN</b>\n\n"
+            f"    Цена: {data['original_price']} "
+            f"≈ <b>{data['converted_price']} {user_currency}</b>\n\n"
         )
 
     return text
-
-
-async def main():
-    game = input("Game: ")
-
-    prices = await get_prices(game)
-
-    print(prices)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
