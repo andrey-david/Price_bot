@@ -54,7 +54,7 @@ def save_games(games, filename="games_list.txt"):
         for game in sorted(games):
             file.write(game + "\n")
 
-    print(f"Saved: {len(games)} games")
+    print(f"Saved {len(games)} game names to {filename}")
 
 
 def main():
