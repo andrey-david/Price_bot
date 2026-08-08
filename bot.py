@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
@@ -10,17 +11,28 @@ from config import (
 )
 from handlers import (
     handlers_router,
+    handlers_region_router,
+    handlers_gamefider,
+    handlers_language,
 )
 from keyboards import (
     set_main_menu,
+)
+from database import (
+    init_db
+)
+from middlewares import (
+    UserMiddleware,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def main():
+async def main():
+    # Config
     config: Config = load_config()
 
+    # Logging
     log_path = 'bot.log'
     logging_handler = logging.FileHandler(filename=log_path, encoding='utf-8')
     logging_console = logging.StreamHandler()
@@ -34,15 +46,31 @@ def main():
 
     logger.info(f"BOT JUST STARTED")
 
+    # Initialising bot
     bot = Bot(
         token=config.bot.token,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
     dp = Dispatcher()
 
+    dp.message.middleware(UserMiddleware())
+    dp.callback_query.middleware(UserMiddleware())
+    dp.inline_query.middleware(UserMiddleware())
+
     dp.startup.register(set_main_menu)
+
     dp.include_router(handlers_router)
-    dp.run_polling(bot)
+    dp.include_router(handlers_region_router)
+    dp.include_router(handlers_gamefider)
+    dp.include_router(handlers_language)
+
+    # Initialising db
+    await init_db()
+
+    # Start pulling
+    await dp.start_polling(bot)
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
