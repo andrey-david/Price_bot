@@ -6,18 +6,22 @@ from urllib.parse import quote
 import aiohttp
 from bs4 import BeautifulSoup
 
+
 logger = logging.getLogger(__name__)
 
-headers = {
+
+HEADERS = {
     "User-Agent": "Mozilla/5.0"
 }
+
+HTTP_TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 
 async def fetch(session, url):
     async with session.get(
         url,
-        headers=headers,
-        timeout=aiohttp.ClientTimeout(total=10)
+        headers=HEADERS,
+        timeout=HTTP_TIMEOUT
     ) as response:
         response.raise_for_status()
         return await response.text()
@@ -26,7 +30,7 @@ async def fetch(session, url):
 async def fetch_json(session, url):
     async with session.get(
         url,
-        timeout=aiohttp.ClientTimeout(total=10)
+        timeout=HTTP_TIMEOUT
     ) as response:
         response.raise_for_status()
         return await response.json()
@@ -36,31 +40,72 @@ def get_number(price, currency):
     if not price:
         return None
 
-    number = re.sub(r"[^\d.,]", "", price)
+    number = re.sub(r"[^\d.,\s]", "", price)
+    number = number.strip()
 
-    if currency in ("EUR", "BRL", "TRY"):
-        number = number.replace(".", "")
+    if not number:
+        return None
+
+    # Пробелы используются как разделитель тысяч:
+    # UAH 2 299,00 -> 2299,00
+    number = number.replace(" ", "")
+
+    if "," in number and "." in number:
+        # Например: 1.299,99
+        if number.rfind(",") > number.rfind("."):
+            number = number.replace(".", "")
+            number = number.replace(",", ".")
+        # Например: 1,299.99
+        else:
+            number = number.replace(",", "")
+
+    elif "," in number:
+        # Для валют с запятой как десятичным разделителем
         number = number.replace(",", ".")
 
-    elif currency in ("JPY", "INR"):
-        number = number.replace(",", "")
+    elif "." in number:
+        # Если точка используется как разделитель тысяч
+        parts = number.split(".")
 
-    else:
-        number = number.replace(",", "")
+        if currency in ("EUR", "BRL", "TRY", "UAH"):
+            if len(parts) > 1 and len(parts[-1]) == 2:
+                # 2299.99
+                pass
+            else:
+                # 2.299 -> 2299
+                number = number.replace(".", "")
 
-    return float(number)
+    try:
+        return float(number)
+    except ValueError:
+        return None
 
 
-async def convert_currency(session, amount, from_currency, to_currency):
-    url = f"https://api.exchangerate-api.com/v4/latest/{from_currency}"
-    data = await fetch_json(session, url)
-    rate = data["rates"][to_currency]
-    return round(amount * rate, 2)
+async def get_exchange_rate(
+    session,
+    from_currency,
+    to_currency
+):
+    if from_currency == to_currency:
+        return 1
 
-
-async def search_game(session, game_name, region):
     url = (
-        f"https://store.playstation.com/"
+        "https://api.exchangerate-api.com/v4/latest/"
+        f"{from_currency}"
+    )
+
+    data = await fetch_json(session, url)
+
+    return data["rates"][to_currency]
+
+
+async def search_game(
+    session,
+    game_name,
+    region
+):
+    url = (
+        "https://store.playstation.com/"
         f"{region}/search/{quote(game_name)}"
     )
 
@@ -77,7 +122,7 @@ async def search_game(session, game_name, region):
     product_id = match.group(1)
 
     return (
-        f"https://store.playstation.com/"
+        "https://store.playstation.com/"
         f"{region}/product/{product_id}"
     )
 
@@ -85,27 +130,65 @@ async def search_game(session, game_name, region):
 async def get_game_info(session, url):
     html = await fetch(session, url)
 
-    soup = BeautifulSoup(html, "lxml")
+    soup = BeautifulSoup(
+        html,
+        "lxml"
+    )
 
     name = soup.find(
         "h1",
         {"data-qa": "mfe-game-title#name"}
     )
 
-    price = re.search(
-        r'"priceOrText":"([^"]+)"',
-        html
-    )
+    offers = []
 
-    old_price = re.search(
-        r'"originalPrice":"([^"]+)"',
-        html
-    )
+    for offer in range(10):
+        final_price = soup.find(
+            "span",
+            {
+                "data-qa":
+                f"mfeCtaMain#offer{offer}#finalPrice"
+            }
+        )
+
+        if final_price is None:
+            continue
+
+        original_price = soup.find(
+            "span",
+            {
+                "data-qa":
+                f"mfeCtaMain#offer{offer}#originalPrice"
+            }
+        )
+
+        ps_plus_icon = soup.find(
+            "span",
+            {
+                "data-qa":
+                f"mfeCtaMain#offer{offer}#serviceIcon#ps-plus"
+            }
+        )
+
+        offers.append({
+            "final_price": final_price.get_text(
+                strip=True
+            ),
+            "original_price": (
+                original_price.get_text(strip=True)
+                if original_price
+                else None
+            ),
+            "ps_plus": ps_plus_icon is not None,
+        })
 
     return {
-        "name": name.text.strip() if name else None,
-        "price": price.group(1) if price else None,
-        "original_price": old_price.group(1) if old_price else None,
+        "name": (
+            name.get_text(strip=True)
+            if name
+            else None
+        ),
+        "offers": offers,
     }
 
 
@@ -114,7 +197,7 @@ async def get_region_price(
     country,
     data,
     game_name,
-    user_currency
+    exchange_rates
 ):
     region = data["region"]
     currency = data["currency"]
@@ -137,28 +220,124 @@ async def get_region_price(
         url
     )
 
-    info["url"] = url
-    info["currency"] = currency
+    offers = info["offers"]
 
-    amount = get_number(
-        info["original_price"],
-        currency
-    )
+    ps_plus_price = None
+    ps_plus_original_price = None
 
-    if amount is not None:
-        info["converted_price"] = await convert_currency(
-            session,
-            amount,
-            currency,
-            user_currency
+    price = None
+    original_price = None
+
+    # Ищем PS+ предложение
+    for offer in offers:
+        if offer["ps_plus"]:
+            ps_plus_price = offer["final_price"]
+            ps_plus_original_price = offer["original_price"]
+            break
+
+    # Ищем обычное предложение
+    for offer in offers:
+        if not offer["ps_plus"]:
+            price = offer["final_price"]
+            original_price = offer["original_price"]
+            break
+
+    rate = exchange_rates[currency]
+
+    # Цена обычной покупки
+    converted_price = None
+
+    if price:
+        amount = get_number(
+            price,
+            currency
         )
-    else:
-        info["converted_price"] = None
 
-    return country, info
+        if amount is not None:
+            converted_price = round(
+                amount * rate,
+                2
+            )
 
-async def get_prices(game_name, regions, user_currency):
+    # Оригинальная цена PS+ предложения
+    converted_ps_plus_original_price = None
+
+    if ps_plus_original_price:
+        amount = get_number(
+            ps_plus_original_price,
+            currency
+        )
+
+        if amount is not None:
+            converted_ps_plus_original_price = round(
+                amount * rate,
+                2
+            )
+
+    # Оригинальная цена обычного предложения
+    converted_original_price = None
+
+    if original_price:
+        amount = get_number(
+            original_price,
+            currency
+        )
+
+        if amount is not None:
+            converted_original_price = round(
+                amount * rate,
+                2
+            )
+
+    return country, {
+        "name": info["name"],
+        "url": url,
+        "currency": currency,
+
+        "ps_plus_price": ps_plus_price,
+        "ps_plus_original_price": ps_plus_original_price,
+        "converted_ps_plus_original_price":
+            converted_ps_plus_original_price,
+
+        "price": price,
+        "original_price": original_price,
+        "converted_price": converted_price,
+        "converted_original_price":
+            converted_original_price,
+    }
+
+
+async def get_prices(
+    game_name,
+    regions,
+    user_currency
+):
     async with aiohttp.ClientSession() as session:
+
+        currencies = {
+            region.currency
+            for region in regions
+        }
+
+        rate_tasks = {
+            currency: get_exchange_rate(
+                session,
+                currency,
+                user_currency
+            )
+            for currency in currencies
+        }
+
+        rates = await asyncio.gather(
+            *rate_tasks.values()
+        )
+
+        exchange_rates = dict(
+            zip(
+                rate_tasks.keys(),
+                rates
+            )
+        )
 
         tasks = [
             get_region_price(
@@ -169,17 +348,22 @@ async def get_prices(game_name, regions, user_currency):
                     "currency": region.currency
                 },
                 game_name,
-                user_currency
+                exchange_rates
             )
             for region in regions
         ]
 
-        results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(
+            *tasks
+        )
 
     return dict(results)
 
 
-def format_prices(prices, user_currency):
+def format_prices(
+    prices,
+    user_currency
+):
     game_name = next(
         (
             data["name"]
@@ -189,23 +373,91 @@ def format_prices(prices, user_currency):
         "Игра"
     )
 
-    text = f"🎮 <b>{game_name}</b>\n"
-    text += "🌍 <b>Цены по регионам:</b>\n\n"
+    text = (
+        f"🎮 <b>{game_name}</b>\n"
+        "🌍 <b>Цены по регионам:</b>\n\n"
+    )
 
     for country, data in prices.items():
 
         if "error" in data:
             text += (
-                f"{country} — {data['error']}\n\n"
+                f"{country} — "
+                f"{data['error']}\n\n"
             )
             continue
 
         text += (
             f"{country} | "
-            f"<a href='{data['url']}'>{data['name']}</a>\n"
-            f"    Цена с PS+: {data['price']}\n"
-            f"    Цена: {data['original_price']} "
-            f"≈ <b>{data['converted_price']} {user_currency}</b>\n\n"
+            f"<a href='{data['url']}'>"
+            f"{data['name']}</a>\n"
         )
+
+        # PS+
+        if data["ps_plus_price"]:
+            text += (
+                f"    Цена с PS+: "
+                f"{data['ps_plus_price']}\n"
+            )
+
+            if data["ps_plus_original_price"]:
+                text += (
+                    f"    Обычная цена: "
+                    f"{data['ps_plus_original_price']}"
+                )
+
+                if (
+                    data[
+                        "converted_ps_plus_original_price"
+                    ]
+                    is not None
+                ):
+                    text += (
+                        f" ≈ <b>"
+                        f"{data['converted_ps_plus_original_price']} "
+                        f"{user_currency}"
+                        f"</b>"
+                    )
+
+                text += "\n"
+
+        # Обычная покупка
+        if data["price"]:
+            text += (
+                f"    Цена: "
+                f"{data['price']}"
+            )
+
+            if data["converted_price"] is not None:
+                text += (
+                    f" ≈ <b>"
+                    f"{data['converted_price']} "
+                    f"{user_currency}"
+                    f"</b>"
+                )
+
+            text += "\n"
+
+        # Старая цена обычной покупки
+        if (
+            data["original_price"]
+            and data["original_price"] != data["ps_plus_original_price"]
+        ):
+            text += (
+                f"    Обычная цена: "
+                f"{data['original_price']}"
+            )
+
+            if data["converted_original_price"] is not None:
+                text += (
+                    f" ≈ <b>"
+                    f"{data['converted_original_price']} "
+                    f"{user_currency}"
+                    f"</b>"
+                )
+
+            text += "\n"
+
+        text += "\n"
 
     return text
