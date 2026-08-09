@@ -1,4 +1,5 @@
 import logging
+from functools import wraps
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -10,45 +11,48 @@ from lexicon import (
 logger = logging.getLogger(__name__)
 
 
-def find_game_keyboard(language: str):
+def decorator_add_back_menu_button(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        keyboard = func(*args, **kwargs)
+
+        language = kwargs.get("language")
+
+        if language is None:
+            language = args[-1]
+
+        keyboard.inline_keyboard.append([
+            InlineKeyboardButton(
+                text=LEXICON[language]["back:menu"],
+                callback_data="back:menu"
+            )
+        ])
+
+        return keyboard
+
+    return wrapper
+
+
+# Menu -----------------------------------------------------------------------
+def menu_keyboard(language: str):
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text=LEXICON[language]["regions"],
-                    callback_data="settings:regions"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text=LEXICON[language]["find a game"],
-                    switch_inline_query_current_chat=""
-                )
-            ],
-
-        ]
-    )
-
-
-def settings_keyboard(language: str):
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=LEXICON[language]["regions"],
-                    callback_data="settings:regions"
+                    callback_data="menu:regions"
                 )
             ],
             [
                 InlineKeyboardButton(
                     text=LEXICON[language]["language"],
-                    callback_data="settings:language"
+                    callback_data="menu:language"
                 )
             ],
             [
                 InlineKeyboardButton(
                     text=LEXICON[language]["currency"],
-                    callback_data="settings:currency"
+                    callback_data="menu:currency"
                 )
             ],
             [
@@ -61,7 +65,29 @@ def settings_keyboard(language: str):
     )
 
 
-def regions_keyboard(
+# Find game -----------------------------------------------------------------------
+def find_game_keyboard(language: str):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=LEXICON[language]["regions"],
+                    callback_data="menu:regions"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text=LEXICON[language]["find a game"],
+                    switch_inline_query_current_chat=""
+                )
+            ],
+
+        ]
+    )
+
+
+# Region -----------------------------------------------------------------------
+def _regions_keyboard(
         regions,
         selected_regions=None,
         language="ru"
@@ -89,75 +115,85 @@ def regions_keyboard(
     if row:
         keyboard.append(row)
 
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text=LEXICON[language]["back:settings"],
-                callback_data="back:settings"
-            )
-        ]
-    )
+    keyboard.append([
+        InlineKeyboardButton(
+            text=LEXICON[language]["find a game"],
+            switch_inline_query_current_chat=""
+        )
+    ])
 
-    keyboard.append(
-        [
-            InlineKeyboardButton(
-                text=LEXICON[language]["find a game"],
-                switch_inline_query_current_chat=""
-            )
-        ]
-    )
+    return keyboard
 
+
+@decorator_add_back_menu_button
+def regions_keyboard(
+        regions,
+        selected_regions=None,
+        language="ru"
+):
     return InlineKeyboardMarkup(
-        inline_keyboard=keyboard
+        inline_keyboard=_regions_keyboard(
+            regions,
+            selected_regions,
+            language
+        )
     )
 
 
-def languages_keyboard(language: str):
+def regions_keyboard_on_start(
+        regions,
+        selected_regions=None,
+        language="ru"
+):
+    return InlineKeyboardMarkup(
+        inline_keyboard=_regions_keyboard(
+            regions,
+            selected_regions,
+            language
+        )
+    )
+
+
+# Language -----------------------------------------------------------------------
+def _languages_keyboard(start: bool = False):
     keyboard = []
+
+    prefix = "start_language" if start else "language"
 
     for code, name in LANGUAGES.items():
         keyboard.append([
             InlineKeyboardButton(
                 text=name,
-                callback_data=f"language:{code}"
+                callback_data=f"{prefix}:{code}"
             )
         ])
 
-    keyboard.append([
-        InlineKeyboardButton(
-            text=LEXICON[language]["back:settings"],
-            callback_data="back:settings"
-        )
-    ])
+    return keyboard
 
+
+@decorator_add_back_menu_button
+def languages_keyboard(language: str):
     return InlineKeyboardMarkup(
-        inline_keyboard=keyboard
+        inline_keyboard=_languages_keyboard()
     )
 
 
 def languages_keyboard_on_start(language: str):
-    keyboard = []
-
-    for code, name in LANGUAGES.items():
-        keyboard.append([
-            InlineKeyboardButton(
-                text=name,
-                callback_data=f"language:{code}"
-            )
-        ])
-
     return InlineKeyboardMarkup(
-        inline_keyboard=keyboard
+        inline_keyboard=_languages_keyboard(start=True)
     )
 
 
-def currency_keyboard(
+# Currency -----------------------------------------------------------------------
+def _currency_keyboard(
         currencies: dict[str, str],
         selected_currency: str | None = None,
-        language: str = "ru"
+        start: bool = False,
 ):
     keyboard = []
     row = []
+
+    prefix = "start_currency" if start else "currency"
 
     for code, name in currencies.items():
         mark = "✅ " if code == selected_currency else ""
@@ -165,7 +201,7 @@ def currency_keyboard(
         row.append(
             InlineKeyboardButton(
                 text=f"{mark}{name}",
-                callback_data=f"currency:{code}"
+                callback_data=f"{prefix}:{code}"
             )
         )
 
@@ -176,13 +212,31 @@ def currency_keyboard(
     if row:
         keyboard.append(row)
 
-    keyboard.append([
-        InlineKeyboardButton(
-            text=LEXICON[language]["back:settings"],
-            callback_data="back:settings"
-        )
-    ])
+    return keyboard
 
+
+@decorator_add_back_menu_button
+def currency_keyboard(
+        currencies: dict[str, str],
+        selected_currency: str | None,
+        language: str,
+):
     return InlineKeyboardMarkup(
-        inline_keyboard=keyboard
+        inline_keyboard=_currency_keyboard(
+            currencies,
+            selected_currency,
+            start=False,
+        )
+    )
+
+
+def currency_keyboard_on_start(
+        currencies: dict[str, str],
+        language: str,
+):
+    return InlineKeyboardMarkup(
+        inline_keyboard=_currency_keyboard(
+            currencies,
+            start=True,
+        )
     )
