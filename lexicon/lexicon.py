@@ -13,7 +13,10 @@ You can change the language in the /menu.
 Выберите интересующие вас регионы, найдите игру через поиск — и бот покажет актуальные цены в выбранной валюте.
 Язык и валюту можно изменить в /menu.
             
-Чтобы открыть меню, используйте команду /menu.            
+Чтобы открыть меню, используйте команду /menu.   
+        
+Нашли баг, заметили ошибку или есть предложение по улучшению бота? 
+Напишите мне: @andrey_david
 """),
         "menu": "🎮 Меню:",
         "back:menu": "⬅️ Меню",
@@ -46,6 +49,9 @@ Select the regions you’re interested in, find a game through the search — an
 You can also change the language and currency in the /menu.
             
 To open the menu, use the /menu command.
+
+Found a bug, noticed an issue, or have a suggestion for improving the bot?
+Message me: @andrey_david
 """),
         "menu": "🎮 Menu:",
         "back:menu": "⬅️ Menu",
