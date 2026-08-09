@@ -1,15 +1,14 @@
 MENU_COMMANDS: dict[str, str] = {
-    '/start': 'запуск бота',
+    '/menu': 'меню',
     '/help': 'помощь',
-    '/settings': 'настройки',
 }
 
 LEXICON: dict[str, dict[str, str]] = {
     "ru": {
-        "start": "Напиши название игры, а я дам тебе список региональных цен",
+        "start": "Выберите интересующие вас <b>регионы</b> и найдите нужную игру — я покажу цены на неё в выбранных регионах.",
         "help": "Напиши название игры, а я дам тебе список региональных цен",
-        "settings": "⚙️ Настройки:",
-        "back:settings": "⬅️ Настройки",
+        "menu": "🎮 Меню:",
+        "back:menu": "⬅️ Меню",
 
         "find a game": "🔍 Найти игру",
         "wait": "⏳ Ожидайте...",
@@ -24,16 +23,16 @@ LEXICON: dict[str, dict[str, str]] = {
 
         "language": "🗣 Язык / Language",
 
-        "currency": "💰 Валюта",
+        "currency": "💰 Ваша валюта",
         "currency_select": "Выберите валюту:",
         "currency_chosen": "Текущая валюта",
     },
 
     "en": {
-        "start": "Enter the name of a game and I will show you regional prices",
+        "start": "Choose the <b>regions</b> you’re interested in and find the game you’re looking for — I’ll show you its prices in the selected regions.",
         "help": "Enter the name of a game and I will show you regional prices",
-        "settings": "⚙️ Settings:",
-        "back:settings": "⬅️ Settings",
+        "menu": "🎮 Menu:",
+        "back:menu": "⬅️ Menu",
 
         "find a game": "🔍 Find a game",
         "wait": "⏳ Please wait...",
@@ -48,7 +47,7 @@ LEXICON: dict[str, dict[str, str]] = {
 
         "language": "🗣 Language / Язык",
 
-        "currency": "💰 Currency",
+        "currency": "💰 Your currency",
         "currency_select": "Select currency:",
         "currency_chosen": "Current currency",
     },
