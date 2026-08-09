@@ -6,7 +6,15 @@ MENU_COMMANDS: dict[str, str] = {
 LEXICON: dict[str, dict[str, str]] = {
     "ru": {
         "start": "Выберите интересующие вас <b>регионы</b> и найдите нужную игру — я покажу цены на неё в выбранных регионах.",
-        "help": "Напиши название игры, а я дам тебе список региональных цен",
+        "help": ("""
+You can change the language in the /menu.
+            
+Бот сравнивает цены на игры в PlayStation Store разных регионов.
+Выберите интересующие вас регионы, найдите игру через поиск — и бот покажет актуальные цены в выбранной валюте.
+Язык и валюту можно изменить в /menu.
+            
+Чтобы открыть меню, используйте команду /menu.            
+"""),
         "menu": "🎮 Меню:",
         "back:menu": "⬅️ Меню",
 
@@ -30,7 +38,15 @@ LEXICON: dict[str, dict[str, str]] = {
 
     "en": {
         "start": "Choose the <b>regions</b> you’re interested in and find the game you’re looking for — I’ll show you its prices in the selected regions.",
-        "help": "Enter the name of a game and I will show you regional prices",
+        "help": ("""
+Язык можно сменить в /menu.
+            
+This bot compares game prices across different PlayStation Store regions.
+Select the regions you’re interested in, find a game through the search — and the bot will show you the current prices in your selected currency.
+You can also change the language and currency in the /menu.
+            
+To open the menu, use the /menu command.
+"""),
         "menu": "🎮 Menu:",
         "back:menu": "⬅️ Menu",
 

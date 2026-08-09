@@ -83,6 +83,17 @@ async def process_start_command(message: Message):
     )
 
 
+@handlers_router.message(Command(commands=["help", "info"]))
+async def process_help_command(
+    message: Message,
+    locale: str
+):
+    await message.answer(
+        LEXICON[locale]["help"],
+        reply_markup=find_game_keyboard(locale)
+    )
+
+
 @handlers_router.callback_query(F.data == "back:menu")
 async def back_menu(
         callback: CallbackQuery,
