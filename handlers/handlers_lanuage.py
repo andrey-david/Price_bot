@@ -7,7 +7,7 @@ from aiogram.types import (
 from sqlalchemy import select
 
 from keyboards import (
-    settings_keyboard,
+    menu_keyboard,
     languages_keyboard,
 )
 from lexicon import (
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 handlers_language = Router(name='handlers_language')
 
 
-@handlers_language.callback_query(F.data == "settings:language")
-async def settings_language(
+@handlers_language.callback_query(F.data == "menu:language")
+async def menu_language(
         callback: CallbackQuery,
         user: User
 ):
@@ -52,8 +52,8 @@ async def select_language(
         await session.commit()
 
     await callback.message.edit_text(
-        text=LEXICON[language]["settings"],
-        reply_markup=settings_keyboard(language)
+        text=LEXICON[language]["menu"],
+        reply_markup=menu_keyboard(language)
     )
 
     await callback.answer()

@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 handlers_region_router = Router(name='handlers_region_router')
 
 
-@handlers_region_router.callback_query(F.data == "settings:regions")
-async def settings_regions(
+@handlers_region_router.callback_query(F.data == "menu:regions")
+async def menu_regions(
     callback: CallbackQuery,
     user: User,
     locale: str
