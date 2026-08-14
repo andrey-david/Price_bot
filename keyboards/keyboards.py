@@ -58,7 +58,8 @@ def menu_keyboard(language: str):
             [
                 InlineKeyboardButton(
                     text=LEXICON[language]["find a game"],
-                    switch_inline_query_current_chat=""
+                    switch_inline_query_current_chat="",
+                    style="primary"
                 )
             ]
         ]
@@ -71,14 +72,9 @@ def find_game_keyboard(language: str):
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=LEXICON[language]["regions"],
-                    callback_data="menu:regions"
-                )
-            ],
-            [
-                InlineKeyboardButton(
                     text=LEXICON[language]["find a game"],
-                    switch_inline_query_current_chat=""
+                    switch_inline_query_current_chat="",
+                    style="primary"
                 )
             ],
 
@@ -90,7 +86,8 @@ def find_game_keyboard(language: str):
 def _regions_keyboard(
         regions,
         selected_regions=None,
-        language="ru"
+        language: str = "ru",
+        start: bool = False,
 ):
     if selected_regions is None:
         selected_regions = set()
@@ -98,13 +95,15 @@ def _regions_keyboard(
     keyboard = []
     row = []
 
+    prefix = "start_region" if start else "region"
+
     for region in regions:
         mark = "✅ " if region.id in selected_regions else ""
 
         row.append(
             InlineKeyboardButton(
                 text=f"{mark}{region.country}",
-                callback_data=f"region:{region.id}"
+                callback_data=f"{prefix}:{region.id}"
             )
         )
 
@@ -115,13 +114,6 @@ def _regions_keyboard(
     if row:
         keyboard.append(row)
 
-    keyboard.append([
-        InlineKeyboardButton(
-            text=LEXICON[language]["find a game"],
-            switch_inline_query_current_chat=""
-        )
-    ])
-
     return keyboard
 
 
@@ -129,7 +121,31 @@ def _regions_keyboard(
 def regions_keyboard(
         regions,
         selected_regions=None,
-        language="ru"
+        language="en"
+):
+    keyboard = _regions_keyboard(
+        regions,
+        selected_regions,
+        language
+    )
+
+    keyboard.append([
+        InlineKeyboardButton(
+            text=LEXICON[language]["find a game"],
+            switch_inline_query_current_chat="",
+            style="primary"
+        )
+    ])
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=keyboard
+    )
+
+
+def regions_keyboard_no_back(
+        regions,
+        selected_regions=None,
+        language="en"
 ):
     return InlineKeyboardMarkup(
         inline_keyboard=_regions_keyboard(
@@ -141,16 +157,18 @@ def regions_keyboard(
 
 
 def regions_keyboard_on_start(
-        regions,
-        selected_regions=None,
-        language="ru"
+        language="en"
 ):
     return InlineKeyboardMarkup(
-        inline_keyboard=_regions_keyboard(
-            regions,
-            selected_regions,
-            language
-        )
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=LEXICON[language]["regions"],
+                    callback_data=f"start_region",
+                )
+            ],
+
+        ]
     )
 
 
@@ -172,13 +190,13 @@ def _languages_keyboard(start: bool = False):
 
 
 @decorator_add_back_menu_button
-def languages_keyboard(language: str):
+def languages_keyboard():
     return InlineKeyboardMarkup(
         inline_keyboard=_languages_keyboard()
     )
 
 
-def languages_keyboard_on_start(language: str):
+def languages_keyboard_on_start():
     return InlineKeyboardMarkup(
         inline_keyboard=_languages_keyboard(start=True)
     )
@@ -219,7 +237,6 @@ def _currency_keyboard(
 def currency_keyboard(
         currencies: dict[str, str],
         selected_currency: str | None,
-        language: str,
 ):
     return InlineKeyboardMarkup(
         inline_keyboard=_currency_keyboard(
@@ -232,7 +249,6 @@ def currency_keyboard(
 
 def currency_keyboard_on_start(
         currencies: dict[str, str],
-        language: str,
 ):
     return InlineKeyboardMarkup(
         inline_keyboard=_currency_keyboard(
