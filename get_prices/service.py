@@ -16,9 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 async def get_prices(
-    game_name,
-    regions,
-    user_currency,
+        game_name,
+        regions,
+        user_currency,
+        user_language,
 ):
     async with aiohttp.ClientSession() as session:
 
@@ -154,6 +155,7 @@ async def get_prices(
                 "regions": prices,
             },
             user_currency,
+            user_language,
         )
 
         return cover_url, text
