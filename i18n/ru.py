@@ -60,4 +60,11 @@ You can change the language in the /menu.
     "currency": "💰 Ваша валюта",
     "currency_select": "Выберите валюту:",
     "currency_chosen": "Текущая валюта",
+    "REGION_GROUPS": {
+        "🇦🇷 Argentina": "Америка",
+        "🇦🇹 Austria": "Европа",
+        "🇧🇭 Bahrain": "Ближний Восток, Африка",
+        "🇦🇺 Australia": "Океания",
+        "🇨🇾 Cyprus": "Азия",
+    }
 }

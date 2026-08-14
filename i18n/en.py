@@ -59,4 +59,11 @@ If you need a Telegram bot tailored to your needs, you can also contact me. I'm 
     "currency": "💰 Your currency",
     "currency_select": "Select currency:",
     "currency_chosen": "Current currency",
+    "REGION_GROUPS": {
+        "🇦🇷 Argentina": "Americas",
+        "🇦🇹 Austria": "Europe",
+        "🇧🇭 Bahrain": "Middle East, Africa",
+        "🇦🇺 Australia": "Oceania",
+        "🇨🇾 Cyprus": "Asia",
+    }
 }
