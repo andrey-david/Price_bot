@@ -1,4 +1,3 @@
-import locale
 import logging
 
 from aiogram import Router, F
@@ -10,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from keyboards import (
     regions_keyboard,
+    regions_keyboard_no_back,
 )
 from database import (
     async_session,
@@ -26,9 +26,9 @@ handlers_region_router = Router(name='handlers_region_router')
 
 @handlers_region_router.callback_query(F.data == "menu:regions")
 async def menu_regions(
-    callback: CallbackQuery,
-    user: User,
-    locale: str
+        callback: CallbackQuery,
+        user: User,
+        language: str
 ):
     async with async_session() as session:
         regions = await session.scalars(
@@ -42,11 +42,49 @@ async def menu_regions(
     }
 
     await callback.message.edit_text(
-        text=LEXICON[locale]["regions_select"],
+        text=LEXICON[language]["regions_select"],
         reply_markup=regions_keyboard(
             regions,
             selected_regions,
-            locale
+            language
+        )
+    )
+
+    await callback.answer()
+
+
+@handlers_region_router.callback_query(F.data == "start_region")
+async def start_region(callback: CallbackQuery):
+    async with async_session() as session:
+        user = await session.scalar(
+            select(User)
+            .where(User.telegram_id == callback.from_user.id)
+        )
+
+        if user is None:
+            await callback.answer("ERROR")
+            return
+
+        language = user.language
+
+        regions = await session.scalars(
+            select(Region)
+        )
+
+        regions = regions.all()
+
+        await session.commit()
+
+    selected_regions = {
+        region.id for region in user.regions
+    }
+
+    await callback.message.edit_text(
+        text=LEXICON[language]["regions_select"],
+        reply_markup=regions_keyboard_no_back(
+            regions,
+            selected_regions,
+            language
         )
     )
 
@@ -81,6 +119,15 @@ async def toggle_region(callback: CallbackQuery):
             user.regions.remove(region)
             text = f"{lexicon['region_removed']} {region.country}"
         else:
+            max_regions = 5
+
+            if len(user.regions) >= max_regions:
+                await callback.answer(
+                    lexicon["max_regions"],
+                    show_alert=True
+                )
+                return
+
             user.regions.append(region)
             text = f"{lexicon['region_added']} {region.country}"
 
