@@ -29,9 +29,9 @@ def format_price(
     )
 
     return (
-        f"<code> {label:<8} "
-        f"{price:<10} "
-        f"{converted:<10}</code>\n"
+        f"<code> {label:<6} "
+        f"{price:<9} "
+        f"{converted:<9}</code>\n"
     )
 
 
