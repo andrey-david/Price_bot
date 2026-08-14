@@ -1,5 +1,11 @@
 EN = {
-    "start": "Choose the <b>regions</b> you’re interested in and find the game you’re looking for — I’ll show you its prices in the selected regions.",
+    "start": ("""
+🎮 Find out which region offers the best price for a game.
+
+<b>1.</b> Select up to <b>5 regions</b> to compare.
+<b>2.</b> Find a game using the search.
+<b>3.</b> Get the results.
+    """),
     "help": ("""
 🎮 <b>About</b>
 This bot compares game prices across different PlayStation Store regions.
