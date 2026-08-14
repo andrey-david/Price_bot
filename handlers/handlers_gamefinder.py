@@ -114,6 +114,7 @@ async def send_result(
             message.text,
             regions,
             user.currency,
+            user.language,
         )
 
         await msg.edit_media(
