@@ -32,26 +32,9 @@ handlers_router = Router(name='handlers_router')
 # Main --------------------------------------------------------------------
 @handlers_router.message(Command(commands="start"))
 async def process_start_command(message: Message):
-    async with async_session() as session:
-        user = await session.scalar(
-            select(User)
-            .where(User.telegram_id == message.from_user.id)
-        )
-
-        if user is None:
-            user = User(
-                telegram_id=message.from_user.id,
-                username=message.from_user.username,
-                first_name=message.from_user.first_name,
-                language="ru",
-            )
-
-            session.add(user)
-            await session.commit()
-
     await message.answer(
         text=LEXICON["en"]["language"],
-        reply_markup=languages_keyboard_on_start(language="en")
+        reply_markup=languages_keyboard_on_start()
     )
 
 
@@ -64,7 +47,7 @@ async def process_start_command(message: Message):
             )
         )
 
-        locale = user.language
+        language = user.language
 
         if user is None:
             user = User(
@@ -78,30 +61,30 @@ async def process_start_command(message: Message):
             await session.commit()
 
     await message.answer(
-        LEXICON[locale]["language"],
-        reply_markup=menu_keyboard(language=locale)
+        LEXICON[language]["language"],
+        reply_markup=menu_keyboard(language=language)
     )
 
 
 @handlers_router.message(Command(commands=["help", "info"]))
 async def process_help_command(
     message: Message,
-    locale: str
+    language: str
 ):
     await message.answer(
-        LEXICON[locale]["help"],
-        reply_markup=find_game_keyboard(locale)
+        LEXICON[language]["help"],
+        reply_markup=find_game_keyboard(language)
     )
 
 
 @handlers_router.callback_query(F.data == "back:menu")
 async def back_menu(
         callback: CallbackQuery,
-        locale: str
+        language: str
 ):
     await callback.message.edit_text(
-        text=LEXICON[locale]["menu"],
-        reply_markup=menu_keyboard(language=locale)
+        text=LEXICON[language]["menu"],
+        reply_markup=menu_keyboard(language=language)
     )
     await callback.answer()
 
@@ -143,7 +126,7 @@ async def select_start_language(callback: CallbackQuery):
         )
 
         if user is None:
-            await callback.answer("Ошибка")
+            await callback.answer("ERROR")
             return
 
         user.language = language
@@ -153,7 +136,6 @@ async def select_start_language(callback: CallbackQuery):
         text=LEXICON[language]["currency"],
         reply_markup=currency_keyboard_on_start(
             CURRENCIES,
-            language=language
         )
     )
 
@@ -190,8 +172,7 @@ async def select_currency(callback: CallbackQuery):
     await callback.answer()
 
 
-@handlers_router.callback_query(
-    F.data.startswith("start_currency:")
+@handlers_router.callback_query(F.data.startswith("start_currency:")
 )
 async def select_start_currency(callback: CallbackQuery):
     currency = callback.data.split(":")[1]
@@ -203,7 +184,7 @@ async def select_start_currency(callback: CallbackQuery):
         )
 
         if user is None:
-            await callback.answer("Ошибка")
+            await callback.answer("ERROR")
             return
 
         user.currency = currency
@@ -213,7 +194,7 @@ async def select_start_currency(callback: CallbackQuery):
 
     await callback.message.edit_text(
         text=LEXICON[language]["start"],
-        reply_markup=find_game_keyboard(language)
+        reply_markup=regions_keyboard_on_start(language)
     )
 
     await callback.answer()
@@ -223,7 +204,7 @@ async def select_start_currency(callback: CallbackQuery):
 async def select_currency(
         callback: CallbackQuery,
         user: User,
-        locale: str
+        language: str
 ):
     currency = callback.data.split(":")[1]
 
@@ -233,14 +214,14 @@ async def select_currency(
         await session.commit()
 
     await callback.answer(
-        f'{LEXICON[locale]["currency_chosen"]}: {currency}'
+        f'{LEXICON[language]["currency_chosen"]}: {currency}'
     )
 
     await callback.message.edit_reply_markup(
         reply_markup=currency_keyboard(
             CURRENCIES,
             currency,
-            locale
+            language
         )
     )
 
@@ -249,15 +230,17 @@ async def select_currency(
 async def menu_currency(
         callback: CallbackQuery,
         user: User,
-        locale: str
+        language: str
 ):
     await callback.answer()
 
     await callback.message.edit_text(
-        text=LEXICON[locale]["currency"],
+        text=LEXICON[language]["currency"],
         reply_markup=currency_keyboard(
             CURRENCIES,
             user.currency,
-            locale
+            language
         )
     )
+
+
