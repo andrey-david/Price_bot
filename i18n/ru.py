@@ -64,7 +64,6 @@ You can change the language in the /menu.
         "🇦🇷 Argentina": "Америка",
         "🇦🇹 Austria": "Европа",
         "🇧🇭 Bahrain": "Ближний Восток, Африка",
-        "🇦🇺 Australia": "Океания",
-        "🇨🇾 Cyprus": "Азия",
+        "🇨🇾 Cyprus": "Азия и Океания",
     }
 }

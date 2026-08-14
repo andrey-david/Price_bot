@@ -237,17 +237,11 @@ REGIONS = [
         "country": "🇦🇪 United Arab Emirates",
     },
 
-    # Australia, New Zealand
+    # Asia, Australia, New Zealand
     {
         "ps_locale": "en-au",
         "country": "🇦🇺 Australia",
     },
-    {
-        "ps_locale": "en-nz",
-        "country": "🇳🇿 New Zealand",
-    },
-
-    # Asia
     {
         "ps_locale": "en-cy",
         "country": "🇨🇾 Cyprus",
@@ -275,6 +269,10 @@ REGIONS = [
     {
         "ps_locale": "en-my",
         "country": "🇲🇾 Malaysia",
+    },
+    {
+        "ps_locale": "en-nz",
+        "country": "🇳🇿 New Zealand",
     },
     {
         "ps_locale": "en-ph",

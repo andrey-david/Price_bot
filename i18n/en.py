@@ -63,7 +63,6 @@ If you need a Telegram bot tailored to your needs, you can also contact me. I'm 
         "🇦🇷 Argentina": "Americas",
         "🇦🇹 Austria": "Europe",
         "🇧🇭 Bahrain": "Middle East, Africa",
-        "🇦🇺 Australia": "Oceania",
-        "🇨🇾 Cyprus": "Asia",
+        "🇨🇾 Cyprus": "Asia, Oceania",
     }
 }
