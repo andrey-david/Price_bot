@@ -8,8 +8,16 @@ NO_DIVIDE_CURRENCIES = {
     "INR",
     "JPY",
     "KRW",
-    "IDR"
+    "IDR",
 }
+
+
+def normalize_price(
+        value: int | float,
+        currency: str,
+) -> float:
+    divisor = 1 if currency in NO_DIVIDE_CURRENCIES else 100
+    return value / divisor
 
 
 def get_price(
@@ -19,12 +27,17 @@ def get_price(
         return None
 
     currency = price.get("currencyCode")
-    divisor = 1 if currency in NO_DIVIDE_CURRENCIES else 100
 
     return {
         "currency": currency,
-        "base_price": price.get("basePriceValue", 0) / divisor,
-        "price": price.get("discountedValue", 0) / divisor,
+        "base_price": normalize_price(
+            price.get("basePriceValue", 0),
+            currency,
+        ),
+        "price": normalize_price(
+            price.get("discountedValue", 0),
+            currency,
+        ),
         "discount": price.get("discountText"),
         "is_free": price.get("isFree"),
         "ps_plus": price.get("isTiedToSubscription"),
@@ -45,20 +58,18 @@ def get_ps_plus_prices(
         if not price.get("isTiedToSubscription"):
             continue
 
+        currency = price.get("currencyCode")
+
         result.append({
             "type": cta.get("type"),
-            "currency": price.get("currencyCode"),
-            "price": (
-                    price.get(
-                        "discountedValue",
-                        0,
-                    ) / 100
+            "currency": currency,
+            "price": normalize_price(
+                price.get("discountedValue", 0),
+                currency,
             ),
-            "base_price": (
-                    price.get(
-                        "basePriceValue",
-                        0,
-                    ) / 100
+            "base_price": normalize_price(
+                price.get("basePriceValue", 0),
+                currency,
             ),
             "subscription": price.get(
                 "serviceBranding",
@@ -67,9 +78,8 @@ def get_ps_plus_prices(
                 "upsellText",
             ),
             "included": (
-                    price.get(
-                        "discountedPrice",
-                    ) == "Included"
+                price.get("discountedPrice")
+                == "Included"
             ),
         })
 
