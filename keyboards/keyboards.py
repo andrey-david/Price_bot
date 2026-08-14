@@ -173,7 +173,9 @@ def regions_keyboard_on_start(
 
 
 # Language -----------------------------------------------------------------------
-def _languages_keyboard(start: bool = False):
+def _languages_keyboard(
+        start: bool = False,
+):
     keyboard = []
 
     prefix = "start_language" if start else "language"
@@ -190,13 +192,17 @@ def _languages_keyboard(start: bool = False):
 
 
 @decorator_add_back_menu_button
-def languages_keyboard():
+def languages_keyboard(
+        language: str = "en",
+):
     return InlineKeyboardMarkup(
         inline_keyboard=_languages_keyboard()
     )
 
 
-def languages_keyboard_on_start():
+def languages_keyboard_on_start(
+        language: str = "en",
+):
     return InlineKeyboardMarkup(
         inline_keyboard=_languages_keyboard(start=True)
     )
@@ -237,6 +243,7 @@ def _currency_keyboard(
 def currency_keyboard(
         currencies: dict[str, str],
         selected_currency: str | None,
+        language: str = "en",
 ):
     return InlineKeyboardMarkup(
         inline_keyboard=_currency_keyboard(
@@ -249,6 +256,7 @@ def currency_keyboard(
 
 def currency_keyboard_on_start(
         currencies: dict[str, str],
+        language: str = "en",
 ):
     return InlineKeyboardMarkup(
         inline_keyboard=_currency_keyboard(
