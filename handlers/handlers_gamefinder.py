@@ -6,17 +6,16 @@ from aiogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
     InputTextMessageContent,
+    InputMediaPhoto,
 )
 from aiogram.exceptions import TelegramBadRequest
 
 from get_prices import (
     get_prices,
-    format_prices,
 )
 from lexicon import LEXICON
 from keyboards import find_game_keyboard
 from database import User
-
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +26,9 @@ handlers_gamefider = Router(
 
 def load_games(filename="games_list.txt"):
     with open(
-        filename,
-        "r",
-        encoding="utf-8"
+            filename,
+            "r",
+            encoding="utf-8"
     ) as file:
         return [
             line.strip()
@@ -43,8 +42,8 @@ games_list = load_games()
 
 @handlers_gamefider.inline_query()
 async def search_inline(
-    query: InlineQuery,
-    user: User
+        query: InlineQuery,
+        user: User
 ):
     text = query.query.strip().lower()
 
@@ -95,8 +94,8 @@ async def search_inline(
 
 @handlers_gamefider.message()
 async def send_result(
-    message: Message,
-    user: User
+        message: Message,
+        user: User
 ):
     msg = await message.reply(
         LEXICON[user.language]["wait"]
@@ -111,21 +110,20 @@ async def send_result(
             )
             return
 
-        prices = await get_prices(
+        cover_url, text = await get_prices(
             message.text,
             regions,
-            user.currency
+            user.currency,
         )
 
-        await msg.edit_text(
-            text=format_prices(
-                prices,
-                user.currency
+        await msg.edit_media(
+            media=InputMediaPhoto(
+                media=cover_url,
+                caption=text,
             ),
             reply_markup=find_game_keyboard(
                 language=user.language
             ),
-            disable_web_page_preview=True,
         )
 
     except Exception:
