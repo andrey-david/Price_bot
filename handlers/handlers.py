@@ -68,8 +68,8 @@ async def process_start_command(message: Message):
 
 @handlers_router.message(Command(commands=["help", "info"]))
 async def process_help_command(
-    message: Message,
-    language: str
+        message: Message,
+        language: str
 ):
     await message.answer(
         LEXICON[language]["help"],
@@ -172,8 +172,7 @@ async def select_currency(callback: CallbackQuery):
     await callback.answer()
 
 
-@handlers_router.callback_query(F.data.startswith("start_currency:")
-)
+@handlers_router.callback_query(F.data.startswith("start_currency:"))
 async def select_start_currency(callback: CallbackQuery):
     currency = callback.data.split(":")[1]
 
@@ -244,3 +243,6 @@ async def menu_currency(
     )
 
 
+@handlers_router.callback_query(F.data == "separator")
+async def separator_callback(callback: CallbackQuery):
+    await callback.answer()
