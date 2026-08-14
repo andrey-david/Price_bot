@@ -26,7 +26,7 @@ Use /menu to change the language, currency, and selected regions.
 
 🐞 <b>Found a Bug?</b>
 If you notice a bug, an incorrect price, or have an idea for improving the bot, feel free to contact me:
-@andrey_david
+@region_ps
 
 💻 <b>Need a Similar Bot?</b>
 If you need a Telegram bot tailored to your needs, you can also contact me. I'm available for custom bot development.
@@ -52,7 +52,7 @@ If you need a Telegram bot tailored to your needs, you can also contact me. I'm 
     "region_removed": "Region removed",
     "region_added": "Region added",
     "max_regions": "🛑 Limit reached",
-    "no_region": "NO REGIONS SELECTED\n\nSelect regions in /settings",
+    "no_region": "You have not selected any regions to search for prices.\n\nSelect regions in /settings",
 
     "language": "🗣 Language / Язык",
 

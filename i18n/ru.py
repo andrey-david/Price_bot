@@ -27,7 +27,7 @@ You can change the language in the /menu.
 
 🐞 <b>Нашли ошибку?</b>
 Если вы заметили баг, неточность в цене или у вас есть идея, как улучшить бота, напишите мне:
-@andrey_david
+@region_ps
 
 💻 <b>Нужен похожий бот?</b>
 Если вам нужен Telegram-бот под ваши задачи — можете также обратиться ко мне.
@@ -53,7 +53,7 @@ You can change the language in the /menu.
     "region_removed": "Убран регион",
     "region_added": "Добавлен регион",
     "max_regions": "🛑 Достигнут лимит",
-    "no_region": "НЕТ ВЫБРАННЫХ РЕГИОНОВ\n\nВыберите регионы в /settings",
+    "no_region": "Вы не выбрали регионы для поиска цен.\n\nВыберите регионы в /menu",
 
     "language": "🗣 Язык / Language",
 
