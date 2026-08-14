@@ -106,8 +106,9 @@ def _regions_keyboard(
 
             keyboard.append([
                 InlineKeyboardButton(
-                    text=f"═════╣{REGION_GROUPS[region.country]}╠═════",
+                    text=f"{REGION_GROUPS[region.country]}",
                     callback_data="separator",
+                    style="danger"
                 )
             ])
 
