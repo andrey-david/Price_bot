@@ -30,6 +30,7 @@ You can change the language in the /menu.
         "regions_select": "Выберите регионы:",
         "region_removed": "Убран регион",
         "region_added": "Добавлен регион",
+        "max_regions": "🛑 Достигнут лимит",
         "no_region": "НЕТ ВЫБРАННЫХ РЕГИОНОВ\n\nВыберите регионы в /settings",
 
         "language": "🗣 Язык / Language",
@@ -65,6 +66,7 @@ Message me: @andrey_david
         "regions_select": "Select regions:",
         "region_removed": "Region removed",
         "region_added": "Region added",
+        "max_regions": "🛑 Limit reached",
         "no_region": "NO REGIONS SELECTED\n\nSelect regions in /settings",
 
         "language": "🗣 Language / Язык",
