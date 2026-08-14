@@ -7,6 +7,7 @@ from .keyboards import (
     languages_keyboard_on_start,
     currency_keyboard_on_start,
     regions_keyboard_on_start,
+    regions_keyboard_no_back,
 )
 from .menu_commands import (
     set_main_menu,
