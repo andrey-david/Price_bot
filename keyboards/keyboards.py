@@ -86,7 +86,7 @@ def find_game_keyboard(language: str):
 def _regions_keyboard(
         regions,
         selected_regions=None,
-        language: str = "ru",
+        language: str = "en",
         start: bool = False,
 ):
     if selected_regions is None:
@@ -94,10 +94,23 @@ def _regions_keyboard(
 
     keyboard = []
     row = []
+    REGION_GROUPS = LEXICON[language]["REGION_GROUPS"]
 
     prefix = "start_region" if start else "region"
 
     for region in regions:
+        if region.country in REGION_GROUPS:
+            if row:
+                keyboard.append(row)
+                row = []
+
+            keyboard.append([
+                InlineKeyboardButton(
+                    text=f"═════╣{REGION_GROUPS[region.country]}╠═════",
+                    callback_data="separator",
+                )
+            ])
+
         mark = "✅ " if region.id in selected_regions else ""
 
         row.append(
