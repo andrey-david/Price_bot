@@ -63,11 +63,6 @@ class Region(Base):
         nullable=False
     )
 
-    currency: Mapped[str] = mapped_column(
-        String(3),
-        nullable=False
-    )
-
     users: Mapped[list["User"]] = relationship(
         secondary="user_regions",
         back_populates="regions",
