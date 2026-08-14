@@ -1,4 +1,3 @@
-from .get_prices import (
-    format_prices,
+from .service import (
     get_prices,
 )
