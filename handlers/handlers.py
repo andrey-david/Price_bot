@@ -61,7 +61,7 @@ async def process_start_command(message: Message):
             await session.commit()
 
     await message.answer(
-        LEXICON[language]["language"],
+        LEXICON[language]["menu"],
         reply_markup=menu_keyboard(language=language)
     )
 
