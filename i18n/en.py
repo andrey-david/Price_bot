@@ -33,8 +33,8 @@ If you need a Telegram bot tailored to your needs, you can also contact me. I'm 
 
 💙 If you find the bot useful, you can simply say thanks or buy me a coffee ☕. It helps support and maintain the project.
 """),
-    "menu": "🎮 Menu:",
-    "back:menu": "⬅️ Menu",
+    "menu": "🎮 Main Menu:",
+    "back:menu": "⬅️ Main Menu",
 
     "find a game": "🔍 Find a game",
     "wait": "⏳ Please wait...",
