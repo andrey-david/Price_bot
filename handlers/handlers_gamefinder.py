@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import (
     Message,
     InlineQuery,
@@ -92,7 +92,7 @@ async def search_inline(
             raise
 
 
-@handlers_gamefider.message()
+@handlers_gamefider.message(~F.text.startswith("/"))
 async def send_result(
         message: Message,
         user: User
