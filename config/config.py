@@ -18,15 +18,15 @@ class LogSettings:
 
 
 @dataclass
+class Admin:
+    admin_ids: list[int]
+
+
+@dataclass
 class Config:
     bot: TgBot
     log: LogSettings
     admin: Admin
-
-
-@dataclass
-class Admin:
-    admin_ids: list[int]
 
 
 def load_config(path: str | None = None) -> Config:
