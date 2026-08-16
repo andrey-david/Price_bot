@@ -14,6 +14,7 @@ from handlers import (
     handlers_region_router,
     handlers_gamefider,
     handlers_language,
+    admin_router,
 )
 from keyboards import (
     set_main_menu,
@@ -23,6 +24,7 @@ from database import (
 )
 from middlewares import (
     UserMiddleware,
+    AdminMiddleware,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,6 +55,9 @@ async def main():
     )
 
     dp = Dispatcher()
+
+    admin_router.message.middleware(AdminMiddleware(config))
+    dp.include_router(admin_router)
 
     dp.message.middleware(UserMiddleware())
     dp.callback_query.middleware(UserMiddleware())
