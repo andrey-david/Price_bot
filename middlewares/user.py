@@ -1,21 +1,27 @@
+import logging
+
 from sqlalchemy import select
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 
 from database import async_session, User
 
+logger = logging.getLogger(__name__)
+
 
 class UserMiddleware(BaseMiddleware):
     async def __call__(
-        self,
-        handler,
-        event: TelegramObject,
-        data: dict
+            self,
+            handler,
+            event: TelegramObject,
+            data: dict
     ):
         telegram_user = data.get("event_from_user")
 
         if telegram_user is None:
             return await handler(event, data)
+
+        logger.info("User ID: %s", telegram_user.id)
 
         async with async_session() as session:
             user = await session.scalar(
