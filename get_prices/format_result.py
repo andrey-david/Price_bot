@@ -33,8 +33,8 @@ def format_price_row(
     return f"""
     <tr>
         <td>{label}</td>
-        <td>{price}</td>
-        <td>{converted}</td>
+        <td align="right">{price}</td>
+        <td align="right">{converted}</td>
     </tr>
     """
 
