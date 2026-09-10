@@ -6,12 +6,13 @@ from aiogram.types import (
     InlineQuery,
     InlineQueryResultArticle,
     InputTextMessageContent,
-    InputMediaPhoto,
+    InputRichMessage,
 )
+from aiogram.methods import SendRichMessage
 from aiogram.exceptions import TelegramBadRequest
 
 from get_prices import (
-    get_prices,
+    html_message,
 )
 from lexicon import LEXICON
 from keyboards import find_game_keyboard
@@ -97,8 +98,10 @@ async def send_result(
         message: Message,
         user: User
 ):
-    msg = await message.reply(
-        LEXICON[user.language]["wait"]
+    msg = await message.reply_rich(
+        InputRichMessage(
+            html=LEXICON[user.language]["wait"]
+        )
     )
 
     try:
@@ -106,25 +109,23 @@ async def send_result(
 
         if not regions:
             await msg.edit_text(
-                LEXICON[user.language]["no_region"]
+                rich_message=InputRichMessage(
+                    html=LEXICON[user.language]["no_region"]
+                )
             )
             return
 
-        cover_url, text = await get_prices(
+        rich_html = await html_message(
             message.text,
             regions,
             user.currency,
             user.language,
         )
 
-        await msg.edit_media(
-            media=InputMediaPhoto(
-                media=cover_url,
-                caption=text,
-            ),
-            reply_markup=find_game_keyboard(
-                language=user.language
-            ),
+        rich_message = InputRichMessage(html=rich_html)
+
+        await msg.edit_text(
+            rich_message=rich_message
         )
 
     except Exception:
