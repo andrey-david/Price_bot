@@ -4,7 +4,10 @@ import logging
 from sqlalchemy import select, func
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message, FSInputFile
+from aiogram.types import (
+    Message,
+    FSInputFile,
+)
 
 from database import async_session, User
 
