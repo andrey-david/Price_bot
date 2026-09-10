@@ -1,3 +1,3 @@
 from .service import (
-    get_prices,
+    html_message,
 )
