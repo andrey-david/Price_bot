@@ -15,26 +15,28 @@ def format_currency_price(
     return f"{price:.2f} {currency_code}"
 
 
-def format_price(
+def format_price_row(
         label: str,
         price: str | None,
         converted_price: float | None,
-        currency: str,
+        user_currency: str,
 ) -> str:
     if price is None:
         return ""
 
     converted = (
-        f"{converted_price} {currency}"
+        f"{converted_price} {user_currency}"
         if converted_price is not None
         else ""
     )
 
-    return (
-        f"<code> {label:<6} "
-        f"{price:<9} "
-        f"{converted:<9}</code>\n"
-    )
+    return f"""
+    <tr>
+        <td>{label}</td>
+        <td>{price}</td>
+        <td>{converted}</td>
+    </tr>
+    """
 
 
 def format_ps_plus_price(
@@ -55,7 +57,7 @@ def format_ps_plus_price(
             currency_code,
         )
 
-    return format_price(
+    return format_price_row(
         LEXICON[language]["ps+"],
         display_price,
         None,
@@ -69,36 +71,45 @@ def format_regular_prices(
         language: str,
         user_currency: str,
 ) -> str:
-    text = ""
+    rows = []
 
-    ps_plus_price = data.get("ps_plus_original_price")
+    ps_plus_price = data.get(
+        "ps_plus_original_price"
+    )
     full_price = data.get("price")
     original_price = data.get("original_price")
 
     # Цена с учётом PS+
     if ps_plus_price is not None:
-        text += format_price(
-            LEXICON[language]["price_ps+"],
-            format_currency_price(
-                ps_plus_price,
-                currency_code,
-            ),
-            data.get(
-                "converted_ps_plus_original_price"
-            ),
-            user_currency,
+        rows.append(
+            format_price_row(
+                LEXICON[language]["price_ps+"],
+                format_currency_price(
+                    ps_plus_price,
+                    currency_code,
+                ),
+                data.get(
+                    "converted_ps_plus_original_price"
+                ),
+                user_currency,
+            )
         )
 
     # Полная цена
-    if full_price is not None and full_price != ps_plus_price:
-        text += format_price(
-            LEXICON[language]["price_full"],
-            format_currency_price(
-                full_price,
-                currency_code,
-            ),
-            data.get("converted_price"),
-            user_currency,
+    if (
+            full_price is not None
+            and full_price != ps_plus_price
+    ):
+        rows.append(
+            format_price_row(
+                LEXICON[language]["price_full"],
+                format_currency_price(
+                    full_price,
+                    currency_code,
+                ),
+                data.get("converted_price"),
+                user_currency,
+            )
         )
 
     # Обычная цена
@@ -107,17 +118,19 @@ def format_regular_prices(
             and original_price != ps_plus_price
             and original_price != full_price
     ):
-        text += format_price(
-            LEXICON[language]["price_original"],
-            format_currency_price(
-                original_price,
-                currency_code,
-            ),
-            data.get("converted_original_price"),
-            user_currency,
+        rows.append(
+            format_price_row(
+                LEXICON[language]["price_original"],
+                format_currency_price(
+                    original_price,
+                    currency_code,
+                ),
+                data.get("converted_original_price"),
+                user_currency,
+            )
         )
 
-    return text
+    return "".join(rows)
 
 
 def format_region(
@@ -128,8 +141,10 @@ def format_region(
 ) -> str:
     if "error" in data:
         return (
-            f"{country} — "
-            f"{data['error']}\n\n"
+            f"<p>"
+            f"<b>{country}</b> — "
+            f"{data['error']}"
+            f"</p>"
         )
 
     currency_code = data.get(
@@ -137,30 +152,33 @@ def format_region(
         "",
     )
 
-    text = (
-        f"<a href='{data['url']}'>"
-        f"{country}"
-        f"</a>\n"
-    )
+    caption = f'<a href="{data["url"]}">{country}</a>'
 
-    text += format_ps_plus_price(
+    ps_plus_row = format_ps_plus_price(
         data,
         currency_code,
         language,
         user_currency,
     )
 
-    text += format_regular_prices(
+    regular_rows = format_regular_prices(
         data,
         currency_code,
         language,
         user_currency,
     )
 
-    return text + "\n"
+    return f"""
+    <table bordered striped>
+        <caption>{caption}</caption>
+        {ps_plus_row}
+        {regular_rows}
+    </table>
+    <hr>
+    """
 
 
-def format_prices(
+def format_html(
         prices: dict,
         user_currency: str,
         language: str,
@@ -170,16 +188,39 @@ def format_prices(
         "Game Name",
     )
 
-    text = (
-        f"🎮 <b>{game_name}</b>\n\n"
+    cover_url = prices.get("cover_url")
+
+    cover = (
+        f'<img src="{cover_url}"/>'
+        if cover_url
+        else ""
     )
 
-    for country, data in prices["regions"].items():
-        text += format_region(
+    regions = "".join(
+        format_region(
             country,
             data,
             user_currency,
             language,
         )
+        for country, data
+        in prices["regions"].items()
+    )
 
-    return text
+    button = f"""
+    <tg-button-row align="right">
+        <tg-button
+            type="switch_inline_query_current_chat"
+            style="primary"
+        >
+            {LEXICON[language]["find a game"]}
+        </tg-button>
+    </tg-button-row>
+    """
+
+    return (
+        f'<h2>{game_name}</h2>'
+        f'{cover}'
+        f'{regions}'
+        f'{button}'
+    )
