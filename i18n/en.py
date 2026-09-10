@@ -43,9 +43,9 @@ If you need a Telegram bot tailored to your needs, you can also contact me. I'm 
 
     "included": "Included",
     "ps+": "PS+",
-    "price_ps+": "Price",
-    "price_full": "Full",
-    "price_original": "Original",
+    "price_ps+": "Price with PS+",
+    "price_full": "Full price",
+    "price_original": "Original price",
 
     "regions": "🌍 Regions",
     "regions_select": "Select regions:",

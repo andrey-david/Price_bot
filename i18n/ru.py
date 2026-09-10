@@ -44,9 +44,9 @@ You can change the language in the /menu.
 
     "included": "Включено",
     "ps+": "PS+",
-    "price_ps+": "Цена",
-    "price_full": "Полная",
-    "price_original": "Оригинальная",
+    "price_ps+": "Цена c PS+",
+    "price_full": "Полная цена",
+    "price_original": "Цена без скидки",
 
     "regions": "🌍 Регионы",
     "regions_select": "Выберите регионы:",
