@@ -240,12 +240,11 @@ def _currency_keyboard(
     prefix = "start_currency" if start else "currency"
 
     for code, name in currencies.items():
-        mark = "✅ " if code == selected_currency else ""
-
         row.append(
             InlineKeyboardButton(
-                text=f"{mark}{name}",
-                callback_data=f"{prefix}:{code}"
+                text=name,
+                callback_data=f"{prefix}:{code}",
+                style="success" if code == selected_currency else None,
             )
         )
 
