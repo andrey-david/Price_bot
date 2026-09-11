@@ -112,12 +112,18 @@ def _regions_keyboard(
                 )
             ])
 
-        mark = "✅ " if region.id in selected_regions else ""
+        style = "success" if region.id in selected_regions else None
+
+        if region.id in selected_regions:
+            style = "success"
+        else:
+            style = None
 
         row.append(
             InlineKeyboardButton(
-                text=f"{mark}{region.country}",
-                callback_data=f"{prefix}:{region.id}"
+                text=region.country,
+                callback_data=f"{prefix}:{region.id}",
+                style=style,
             )
         )
 
