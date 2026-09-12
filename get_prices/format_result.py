@@ -208,7 +208,7 @@ def format_html(
     )
 
     button = f"""
-    <tg-button-row align="center">
+    <tg-button-row>
         <tg-button
             type="switch_inline_query_current_chat"
             style="primary"
