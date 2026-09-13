@@ -16,6 +16,7 @@ admin_router = Router()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = BASE_DIR / "bot.log"
+DATABASE_FILE = BASE_DIR / "bot.db"
 
 
 @admin_router.message(Command("status"))
@@ -38,4 +39,15 @@ async def admin_logs(message: Message):
 
     await message.answer_document(
         document=FSInputFile(LOG_FILE)
+    )
+
+
+@admin_router.message(Command("bd"))
+async def admin_database(message: Message):
+    if not DATABASE_FILE.exists():
+        await message.answer("❌ Файл bot.db не найден")
+        return
+
+    await message.answer_document(
+        document=FSInputFile(DATABASE_FILE, filename="bot.db")
     )
